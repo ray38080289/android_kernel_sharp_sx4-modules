@@ -1,0 +1,101 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * AQUOS wish4 (sx4) board values on top of mt6833.dts. The Sharp kernel release
+ * ships the MediaTek reference values here; these are the ones of the stock device
+ * tree, which the resulting dtb matches byte for byte.
+ */
+
+&chosen {
+	bootargs = "console=tty0 root=/dev/ram \t\t\t8250.nr_uarts=4 restrict_cma_redirect \t\t\trcupdate.rcu_expedited=1 \t\t\tvmalloc=400M swiotlb=noforce \t\t\tfirmware_class.path=/vendor/firmware \t\t\tandroidboot.hardware=mt6833 \t\t\ttransparent_hugepage=never \t\t\tinitcall_debug=1";
+};
+
+&mmc0 {
+	clocks = <&topckgen_clk 199 &topckgen_clk 200 &infracfg_ao_clk 20 &infracfg_ao_clk 22>;
+};
+
+&mt6360_chg {
+	ircmp-resistor = <0>;
+	ircmp-vclamp = <0>;
+};
+
+&mt6360_typec {
+	mt6360pd,intr-gpio = <&pio 9 0>;
+	mt6360pd,intr-gpio-num = <9>;
+};
+
+&{/i2c@11e01000/tcpc@4e/pd-data} {
+	pd,source-pdo-data = <102490>;
+};
+
+&i2c6 {
+	/delete-property/ #address-cells;
+	/delete-property/ #size-cells;
+};
+
+&{/mtk_leds/backlight} {
+	max-hw-brightness = <255>;
+};
+
+&{/pwrap@10026000/mt6359p/mt6359p-clkbuf/XO-EXT} {
+	xo-id = <6>;
+};
+
+&u2port0 {
+	mediatek,eye-vrt = <7>;
+	mediatek,eye-term = <6>;
+	mediatek,rev6 = <3>;
+	mediatek,eye-vrt-host = <7>;
+	mediatek,eye-term-host = <6>;
+	mediatek,rev6-host = <3>;
+};
+
+&lk_charger {
+	pd_charger_current = <3000000>;
+	temp_t4_threshold = <55>;
+};
+
+&pe {
+	min_charger_voltage = <4200000>;
+};
+
+&pe2 {
+	min_charger_voltage = <4200000>;
+};
+
+&pdc {
+	min_charger_voltage = <4200000>;
+	pd_vbus_upper_bound = <9000000>;
+};
+
+&pe4 {
+	min_charger_voltage = <4200000>;
+};
+
+&charger {
+	battery_cv = <4400000>;
+	min_charger_voltage = <4200000>;
+	jeita_temp_above_t4_cv = <4200000>;
+	jeita_temp_t3_to_t4_cv = <4200000>;
+	jeita_temp_t2_to_t3_cv = <4400000>;
+	jeita_temp_t1_to_t2_cv = <4400000>;
+	jeita_temp_t0_to_t1_cv = <4400000>;
+	jeita_temp_below_t0_cv = <4400000>;
+	temp_t4_thres = <55>;
+	temp_t4_thres_minus_x_degree = <53>;
+	temp_t3_thres_minus_x_degree = <43>;
+	temp_t2_thres = <15>;
+	temp_t2_thres_plus_x_degree = <17>;
+	temp_t1_thres_plus_x_degree = <2>;
+	max_charge_temp = <55>;
+	max_charge_temp_minus_x_degree = <53>;
+	ac_charger_current = <1500000>;
+	ac_charger_input_current = <3000000>;
+	min_charger_voltage_1 = <4200000>;
+	min_charger_voltage_2 = "", "=\t";
+	max_dmivr_charger_current = <1400000>;
+	/delete-property/ enable_fast_charging_indicator;
+};
+
+&{/sound/mediatek,speaker-codec} {
+	sound-dai = <&aw883xx_smartpa_0>;
+};

@@ -68,6 +68,79 @@
 		kaslr-seed = <0 0>;
 	};
 
+	fih_apr: fih_apr {
+		compatible = "fih_apr";
+		fih_apr,pon = "0x00000000";
+		fih_apr,poff = "0x00000000";
+		fih_apr,rere = "0x00000000";
+		fih_apr,bm = "normal";
+		fih_apr,br = "reboot";
+	};
+
+	fih_binf: fih_binf {
+		compatible = "fih_binf";
+		fih_binf,batteryinfo = "000000000000000000000000000000000000000000000000";
+	};
+
+	fih_cpu: fih_cpu {
+		compatible = "fih_cpu";
+		fih_cpu,cpuinfo = "MT6833V_NZA";
+	};
+
+	fih_ddr: fih_ddr {
+		compatible = "fih_ddr";
+		fih_ddr,draminfo = "UNKNOWN LPDDR4x 4096MB";
+		fih_ddr,dramtest = "none";
+	};
+
+	fih_fver: fih_fver {
+		compatible = "fih_fver";
+		fih_fver,systeminfo = "MLF,SX3-0000-0-0000-A01.mlf";
+	};
+
+	fih_info: fih_info {
+		compatible = "fih_info";
+		fih_info,model = "MT6833,SX3";
+		fih_info,devmodel = "MTK";
+		fih_info,baseband = "0.0";
+		fih_info,bandinfo = "W_2_4_5^L_2_3_4_5_12_14_29_30_66^N_2_5_66";
+		fih_info,hwmodel = "FIH";
+	};
+
+	fih_mfd: fih_mfd {
+		compatible = "fih_mfd";
+		fih_mfd,pid = "SX3TPE0010100001";
+		fih_mfd,bt_mac = "0123456789AB";
+		fih_mfd,wifi_mac = "0123456789AB";
+		fih_mfd,wifi_mac2 = "0123456789AB";
+		fih_mfd,imei_1 = "0123456789ABCDE";
+		fih_mfd,imei_2 = "0123456789ABCDE";
+		fih_mfd,meid_1 = "0123456789ABCD";
+		fih_mfd,meid_2 = "0123456789ABCD";
+	};
+
+	fih_pdd: fih_pdd {
+		compatible = "fih_pdd";
+		fih_pdd,productdate = "yyyymm00000000000000000000000000";
+	};
+
+	fih_seb: fih_seb {
+		compatible = "fih_seb";
+		fih_seb,enabled = "2";
+		fih_seb,serialno = "000000000000";
+		fih_seb,unlocked = "2";
+	};
+
+	fih_sim: fih_sim {
+		compatible = "fih_sim";
+		fih_sim,simslot = "1";
+	};
+
+	fih_ufs: fih_ufs {
+		compatible = "fih_ufs";
+		fih_ufs,ufsinfo = "UNKNOWN UFS 32GB";
+	};
+
 	clkitg: clkitg {
 		compatible = "simple-bus";
 	};
@@ -3574,6 +3647,12 @@
 		compatible = "goodix,touch";
 	};
 
+	irq_nfc: irq_nfc {
+		compatible = "mediatek, irq_nfc-eint";
+		mode = "IRQ";
+		status = "okay";
+	};
+
 	/* Microtrust SW IRQ number 85(117) ~ 90(122) */
 	utos: utos {
 		compatible = "microtrust,utos";
@@ -4195,6 +4274,24 @@
 		compatible = "mediatek,mtboard-thermistor3";
 		io-channels = <&auxadc 2>;
 		io-channel-names = "thermistor-ch2";
+	};
+
+	tboard_thermistor4: thermal-sensor4 {
+		compatible = "mediatek,mtboard-thermistor4";
+		io-channels = <&auxadc 3>;
+		io-channel-names = "thermistor-ch3";
+	};
+
+	tboard_thermistor5: thermal-sensor5 {
+		compatible = "mediatek,mtboard-thermistor5";
+		io-channels = <&auxadc 5>;
+		io-channel-names = "thermistor-ch5";
+	};
+
+	tboard_thermistor6: thermal-sensor6 {
+		compatible = "mediatek,mtboard-thermistor6";
+		io-channels = <&auxadc 6>;
+		io-channel-names = "thermistor-ch6";
 	};
 
 	thermal_ipi_legacy: thermal_ipi_legacy {
@@ -6022,11 +6119,14 @@ gpufreq: gpufreq {
 
 		algorithm_name = "Basic";
 		charger_configuration= <0>;
+		enable_type_c;
+		power_path_support;
 
 		/* common */
 		battery_cv = <4350000>;
 		max_charger_voltage = <6500000>;
 		min_charger_voltage = <4600000>;
+		enable_sw_jeita;
 
 		/* sw jeita */
 		/* enable_sw_jeita; */
@@ -6036,6 +6136,9 @@ gpufreq: gpufreq {
 		jeita_temp_t1_to_t2_cv = <4240000>;
 		jeita_temp_t0_to_t1_cv = <4040000>;
 		jeita_temp_below_t0_cv = <4040000>;
+		jeita_temp_t3_to_t4_bat_cur = <2400000>;
+		jeita_temp_t2_to_t3_bat_cur = <3000000>;
+		jeita_temp_t1_to_t2_bat_cur = <950000>;
 		temp_t4_thres = <50>;
 		temp_t4_thres_minus_x_degree = <47>;
 		temp_t3_thres = <45>;
@@ -6257,6 +6360,7 @@ gpufreq: gpufreq {
 		compatible = "mediatek,mt6833-mt6359p-sound";
 		mediatek,headset-codec = <&accdet>;
 		mediatek,platform = <&afe>;
+		mediatek,spk-i2s = <3 0>;
 		mediatek,speaker-codec {
 			sound-dai = <&speaker_amp>;
 		};
@@ -7007,10 +7111,16 @@ gpufreq: gpufreq {
 &i2c6 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	speaker_amp: speaker_amp@34 {
-		compatible = "mediatek,speaker_amp";
+	aw883xx_smartpa_0: aw883xx_smartpa@34 {
+		compatible = "awinic,aw883xx_smartpa";
 		#sound-dai-cells = <0>;
-		reg = <0x34>;
+		reg = <52>;
+		reset-gpio = <&pio 139 0>;
+		irq-gpio = <&pio 39 0>;
+		sync-load = <1>;
+		sound-channel = <0>;
+		re-min = <1000>;
+		re-max = <40000>;
 		status = "okay";
 	};
 };
@@ -7315,3 +7425,5 @@ grpid = <11>;
 
 #include "mediatek/cust_mt6833_msdc.dtsi"
 #include "mediatek/trusty.dtsi"
+
+#include "mediatek/mt6833-sx4.dtsi"
