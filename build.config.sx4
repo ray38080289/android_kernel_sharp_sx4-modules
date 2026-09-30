@@ -1,0 +1,4 @@
+. ${ROOT_DIR}/${DEVICE_MODULES_DIR}/build.config.mtk_kernel_device_modules
+
+DEFCONFIG_OVERLAYS="mt6833_overlay.config mt6833_overlay_SX4.config lineage.config"
+TARGET_BUILD_VARIANT=user
