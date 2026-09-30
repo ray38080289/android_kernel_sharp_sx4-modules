@@ -1,0 +1,102 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * FPC fingerprint sensor on SPI5. The k6833v1_64_sx4_*.dtsi board files include
+ * this file but the Sharp kernel release does not carry it. Reconstructed from the
+ * stock dtbo.
+ */
+
+&spi5 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	fpc_tee@0 {
+		compatible = "fpc,fpc_spi";
+		reg = <0x0>;
+		spi-max-frequency = <10000000>;
+		netlink-event = <31>;
+		int-gpios = <&pio 22 0>;
+		pinctrl-names = "fpsensor_fpc_rst_low", "fpsensor_fpc_rst_high", "fpsensor_eint", "fpsensor_eint_in_low", "fpsensor_eint_in_float", "fpsensor_fpc_pwren_low", "fpsensor_fpc_pwren_high", "fpsensor_spi5_active", "fpsensor_spi5_disable";
+		pinctrl-0 = <&fpsensor_fpc_rst_low>;
+		pinctrl-1 = <&fpsensor_fpc_rst_high>;
+		pinctrl-2 = <&fpsensor_eint>;
+		pinctrl-3 = <&fpsensor_eint_in_low>;
+		pinctrl-4 = <&fpsensor_eint_in_float>;
+		pinctrl-5 = <&fpsensor_fpc_pwren_low>;
+		pinctrl-6 = <&fpsensor_fpc_pwren_high>;
+		pinctrl-7 = <&fpsensor_spi5_active>;
+		pinctrl-8 = <&fpsensor_spi5_disable>;
+		status = "okay";
+	};
+};
+
+&pio {
+	fpsensor_fpc_rst_low: fpsensor_fpc_rst_low {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO21__FUNC_GPIO21>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	fpsensor_fpc_rst_high: fpsensor_fpc_rst_high {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO21__FUNC_GPIO21>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+
+	fpsensor_eint: fpsensor_eint {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO22__FUNC_GPIO22>;
+			slew-rate = <0>;
+			bias-disable;
+		};
+	};
+
+	fpsensor_eint_in_low: fpsensor_eint_in_low {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO22__FUNC_GPIO22>;
+			slew-rate = <0>;
+			bias-pull-down = <0>;
+		};
+	};
+
+	fpsensor_eint_in_float: fpsensor_eint_in_float {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO22__FUNC_GPIO22>;
+			slew-rate = <0>;
+			bias-disable;
+		};
+	};
+
+	fpsensor_fpc_pwren_low: fpsensor_fpc_pwren_low {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO132__FUNC_GPIO132>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	fpsensor_fpc_pwren_high: fpsensor_fpc_pwren_high {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO132__FUNC_GPIO132>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+
+	fpsensor_spi5_active: fpsensor_spi5_active {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO35__FUNC_SPI5_CLK PINMUX_GPIO36__FUNC_SPI5_CSB PINMUX_GPIO37__FUNC_SPI5_MO PINMUX_GPIO38__FUNC_SPI5_MI>;
+		};
+	};
+
+	fpsensor_spi5_disable: fpsensor_spi5_disable {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO35__FUNC_GPIO35 PINMUX_GPIO36__FUNC_GPIO36 PINMUX_GPIO37__FUNC_GPIO37 PINMUX_GPIO38__FUNC_GPIO38>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+};
