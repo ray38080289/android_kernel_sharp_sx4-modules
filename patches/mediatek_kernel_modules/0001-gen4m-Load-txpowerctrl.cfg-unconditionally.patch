@@ -1,0 +1,62 @@
+From 32a30763450360e3079eb0a6687bcd945be15c92 Mon Sep 17 00:00:00 2001
+From: ray <17946705+ray38080289@users.noreply.github.com>
+Date: Wed, 30 Sep 2026 23:25:08 +0800
+Subject: [PATCH] gen4m: Load txpowerctrl.cfg unconditionally
+
+Revert Tinno's SKU switch between txpowerctrl.cfg and txpowerctrllite.cfg
+to MediaTek's code: it calls oem_hw_sku(), which only Motorola devices
+provide.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../wlan/core/gen4m/mgmt/rlm_domain.c         | 27 +++----------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
+
+diff --git a/connectivity/wlan/core/gen4m/mgmt/rlm_domain.c b/connectivity/wlan/core/gen4m/mgmt/rlm_domain.c
+index 09fa6d5..9e01d27 100755
+--- a/connectivity/wlan/core/gen4m/mgmt/rlm_domain.c
++++ b/connectivity/wlan/core/gen4m/mgmt/rlm_domain.c
+@@ -9687,36 +9687,17 @@ void txPwrCtrlGlobalVariableToList(struct ADAPTER *prAdapter)
+ 			  "config list, after loadding global variables");
+ }
+ 
+-//TN Start modified by dong.zhang  Do not delete when resolving conflicts please
+-unsigned int oem_hw_sku(void);
+-static int getSku(void) {
+-	int value = 0;
+-	value = oem_hw_sku();
+-	DBGLOG(RLM, ERROR, "sku===: %d\n", value);
+-	return value;
+-}
+-//TN End modified by dong.zhang Do not delete when resolving conflicts please
+ 
+ void txPwrCtrlCfgFileToList(struct ADAPTER *prAdapter)
+ {
+ 	uint8_t *pucConfigBuf = NULL;
+ 	uint32_t u4ConfigReadLen = 0;
+ 
+-	//TN Start modified by dong.zhang  Do not delete when resolving conflicts please
+-	if(getSku() > 10) {
+-		if (kalRequestFirmware("txpowerctrl.cfg", &pucConfigBuf,
+-			&u4ConfigReadLen, TRUE,
+-			kalGetGlueDevHdl(prAdapter->prGlueInfo)) == 0) {
+-			/* ToDo:: Nothing */
+-		}
+-	}else {
+-		if (kalRequestFirmware("txpowerctrllite.cfg", &pucConfigBuf,
+-			&u4ConfigReadLen, TRUE,
+-			kalGetGlueDevHdl(prAdapter->prGlueInfo)) == 0) {
+-			/* ToDo:: Nothing */
+-		}
++	if (kalRequestFirmware("txpowerctrl.cfg", &pucConfigBuf,
++		&u4ConfigReadLen, TRUE,
++		kalGetGlueDevHdl(prAdapter->prGlueInfo)) == 0) {
++		/* ToDo:: Nothing */
+ 	}
+-	//TN End modified by dong.zhang Do not delete when resolving conflicts please
+ 
+ 	if (pucConfigBuf) {
+ 		txPwrCtrlFileBufToList(prAdapter, pucConfigBuf);
+-- 
+2.53.0
+

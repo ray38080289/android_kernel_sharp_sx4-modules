@@ -7,7 +7,8 @@
 # Tree layout (same as the kleaf manifests):
 #   $ROOT/kernel-6.6                     ACK common (fetched if missing)
 #   $ROOT/kernel_device_modules-6.6      this repository
-#   $ROOT/vendor/mediatek/kernel_modules connectivity + GPU modules
+#   $ROOT/vendor/mediatek/kernel_modules connectivity + GPU modules (fetched if missing:
+#                                        LineageOS lamu-mediatek_modules + patches/mediatek_kernel_modules)
 #   $ROOT/prebuilts/clang-r510928        the GKI compiler (fetched if missing)
 # Output: $ROOT/out/dist/*.ko (debug info stripped), mt6833.dtb and dtbo.img
 #
@@ -18,6 +19,7 @@ set -euo pipefail
 ACK_SHA=cc1e318bd6fc                 # 6.6.139-android15-8-gcc1e318bd6fc-ab16457230
 GKI_BUILD=16457230                   # ci.android.com build of that kernel
 CLANG=r510928
+MTK_MODULES=635ca317b538541c6c33c1abee9aa56b01aeb407  # LineageOS android_kernel_motorola_lamu-mediatek_modules
 LIBUFDT=df92216e3fc5f3fe289423a7819bd4a5ed3bd443  # mkdtboimg.py (LineageOS android_system_libufdt)
 
 DM="$(cd "$(dirname "$0")" && pwd)"
@@ -48,7 +50,12 @@ fetch() {
         mkdir -p "$O"
         curl -sSfL -o "$O/mkdtboimg.py"             "https://raw.githubusercontent.com/LineageOS/android_system_libufdt/$LIBUFDT/utils/src/mkdtboimg.py"
     fi
-    [ -d "$V/connectivity" ] || { echo "missing $V" >&2; exit 1; }
+    if [ ! -d "$V/connectivity" ]; then
+        git init -q "$V"
+        git -C "$V" fetch -q --depth 1 https://github.com/LineageOS/android_kernel_motorola_lamu-mediatek_modules "$MTK_MODULES"
+        git -C "$V" checkout -q FETCH_HEAD
+        git -C "$V" apply "$DM"/patches/mediatek_kernel_modules/*.patch
+    fi
 }
 
 export PATH="$C/bin:$PATH"
