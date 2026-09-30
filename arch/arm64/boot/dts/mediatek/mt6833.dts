@@ -7062,7 +7062,7 @@ gpufreq: gpufreq {
 	charger = <&mt6360_chg>;
 };
 
-#include "mediatek/bat_setting/mt6833_battery_prop.dtsi"
+#include "mediatek/bat_setting/mt6833_battery_prop_SX4.dtsi"
 
 &spmi {
 grpid = <11>;
