@@ -1,0 +1,130 @@
+#
+# fih driver
+#
+
+menu "fih driver"
+
+config FIH
+	bool "fih"
+	default n
+	help
+	  support fih
+
+config FIH_SX3
+	bool "fih_sx3"
+	default n
+	help
+	  support fih_sx3
+
+config FIH_SX4
+	bool "fih_sx4"
+	default n
+	help
+	  support fih_sx4
+
+config FIH_APR
+	tristate "fih_apr"
+	depends on FIH
+	default n
+	help
+	  support fih_apr
+
+config FIH_BINF
+	tristate "fih_binf"
+	depends on FIH
+	default n
+	help
+	  support fih_binf
+
+config FIH_CPU
+	tristate "fih_cpu"
+	depends on FIH
+	default n
+	help
+	  support fih_cpu
+
+config FIH_DDR
+	tristate "fih_ddr"
+	depends on FIH
+	default n
+	help
+	  support fih_ddr
+
+config FIH_EXP
+	tristate "fih_exp"
+	depends on FIH
+	default n
+	help
+	  support fih_exp
+
+config FIH_FVER
+	tristate "fih_fver"
+	depends on FIH
+	default n
+	help
+	  support fih_fver
+
+config FIH_INFO
+	tristate "fih_info"
+	depends on FIH
+	default n
+	help
+	  support fih_info
+
+config FIH_MFD
+	tristate "fih_mfd"
+	depends on FIH
+	default n
+	help
+	  support fih_mfd
+
+config FIH_PDD
+	tristate "fih_pdd"
+	depends on FIH
+	default n
+	help
+	  support fih_pdd
+
+config FIH_SEB
+	tristate "fih_seb"
+	depends on FIH
+	default n
+	help
+	  support fih_seb
+
+config FIH_SIM
+	tristate "fih_sim"
+	depends on FIH
+	default n
+	help
+	  support fih_sim
+
+config FIH_TRAY
+	tristate "fih_tray"
+	depends on FIH
+	default n
+	help
+	  support fih_tray
+
+config FIH_UFS
+	tristate "fih_ufs"
+	depends on FIH
+	default n
+	help
+	  support fih_ufs
+
+config SHR_LOG
+	tristate "shr_log"
+	depends on FIH
+	default n
+	help
+	  support shr_log
+
+config FIH_TOUCH
+	tristate "fih_touch"
+	depends on FIH
+	default n
+	help
+	  support fih_touch
+
+endmenu

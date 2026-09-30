@@ -1,0 +1,14 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ * Copyright (c) 2019 MediaTek Inc.
+*/
+
+/* TOUCH start */
+&i2c0 {
+	sitronix_ts@55 {
+		compatible = "mediatek,sitronix_ts" ;
+		reg = < 0x55 > ;
+		status = "okay" ;
+	};
+};
+/* TOUCH end */

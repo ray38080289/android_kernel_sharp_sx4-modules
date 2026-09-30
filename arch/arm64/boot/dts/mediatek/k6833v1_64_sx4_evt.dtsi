@@ -1,0 +1,27 @@
+/* OVERLAY,SX4,EVT */
+#include "mediatek/overlay_sx4_evt_fih_info.dtsi"
+#include "mediatek/overlay_sx4_sdcard.dtsi"
+#include "mediatek/overlay_sx3_pre_evt_fih_fp.dtsi"
+
+&keypad {
+	/delete-property/ mediatek,hw-init-map;
+	/delete-property/ mediatek,hw-dl-key1;
+	/delete-property/ mediatek,hw-factory-key;
+	mediatek,hw-init-map = <0 114 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 >;
+	mediatek,hw-dl-key1 = <1>;
+	mediatek,hw-factory-key = <1>;
+};
+
+&kpd_pins_default {
+	/delete-node/ pins_cmd_dat;
+	pins_cmd_dat_79 {
+		pinmux = <PINMUX_GPIO79__FUNC_GPIO79>;
+		output-low;
+	};
+	pins_cmd_dat_80 {
+		pinmux = <PINMUX_GPIO80__FUNC_KPCOL1>;
+		bias-pull-up = <MTK_PUPD_SET_R1R0_10>;
+		output-low;
+		input-schmitt-enable;
+	};
+};

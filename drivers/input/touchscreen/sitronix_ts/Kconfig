@@ -1,0 +1,15 @@
+#
+# Sitronix Touchscreen driver configuration
+#
+
+config TOUCHSCREEN_SITRONIX_TS
+    tristate "Sitronix Touchscreen"
+    default n
+    help
+        Say Y here if you have Sitronix touch panel.
+        If unsure, say N.
+
+config TOUCHSCREEN_SITRONIX_TS_RAWDATA
+    tristate "Sitronix ts directory name"
+    default n
+    depends on TOUCHSCREEN_SITRONIX_TS

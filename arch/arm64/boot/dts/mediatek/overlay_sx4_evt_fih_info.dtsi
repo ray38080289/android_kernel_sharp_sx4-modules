@@ -1,0 +1,3 @@
+&fih_info {
+	fih_info,model = "SX4,EVT";
+};

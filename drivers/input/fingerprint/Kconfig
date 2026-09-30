@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Fingerprint configuration
+#
+#
+config MTK_FINGERPRINT_SUPPORT
+	bool "Mediatek Fingerprint"
+	default n
+	help
+	  Fingerprint mtk driver enable/disable
+	  in the kernel.Say Y here if you want to
+	  use mediatek fingerprint driver,fingerprint
+	  driver will support fingerprint function
+
+config FPC_FINGERPRINT_STANDALONE
+	tristate "FPC SPI and IRQ Driver"
+	default n
+	help
+	 This is a FPC chipset SPI and IRQ Driver.
