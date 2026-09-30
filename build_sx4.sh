@@ -45,11 +45,15 @@ fetch() {
 }
 
 export PATH="$C/bin:$PATH"
+# Device and vendor modules are built with M= relative to the kernel tree, as MediaTek's
+# build does: several of their Makefiles build include paths as $(srctree)/$(src).
 # O must be $ROOT/out: gen4m's wrapper finds the connectivity tree as $(O)/../vendor/...
+REL="$(realpath --relative-to="$K" "$DM")"
+VREL="$(realpath --relative-to="$K" "$V")"
 MK=(make O="$O" ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$JOBS"
-    KCONFIG_EXT_PREFIX="$DM/" DEVICE_MODULES_PATH="$DM"
-    DEVICE_MODULES_REL_DIR="$(realpath --relative-to="$K" "$DM")"
-    DEVCIE_MODULES_INCLUDE="-I$DM/include" KERNEL_SRC="$K")
+    KCONFIG_EXT_PREFIX="$REL/" DEVICE_MODULES_REL_DIR="$REL"
+    DEVICE_MODULES_PATH="\$(srctree)/$REL" DEVCIE_MODULES_INCLUDE="-I\$(srctree)/$REL/include"
+    KERNEL_SRC="$K")
 
 configure() {
     mkdir -p "$O"
@@ -74,7 +78,7 @@ build() {
         "${MK[@]}" -C "$K" M="$K/$d" KBUILD_EXTRA_SYMBOLS="$syms" modules
         syms="$syms $K/$d/Module.symvers"
     done
-    "${MK[@]}" -C "$K" M="$DM" KBUILD_EXTRA_SYMBOLS="$syms" modules
+    "${MK[@]}" -C "$K" M="$REL" KBUILD_EXTRA_SYMBOLS="$syms" modules
     syms="$DM/Module.symvers $syms"
     # connectivity and GPU, in dependency order
     for d in connectivity/common connectivity/conninfra connectivity/wlan/adaptor/build/connac1x \
@@ -88,7 +92,7 @@ build() {
                          CONFIG_MALI_PROTECTED_MEMORY_ALLOCATOR=y CONFIG_DMA_SHARED_BUFFER_TEST_EXPORTER=y
                          CONFIG_MALI_PLATFORM_NAME=mt6833 MTK_PLATFORM_VERSION=mt6833) ;;
         esac
-        "${MK[@]}" -C "$dir" M="$V/$d" "${opts[@]}" \
+        "${MK[@]}" -C "$dir" M="$VREL/$d" "${opts[@]}" \
             KBUILD_EXTRA_SYMBOLS="$syms" EXTRA_SYMBOLS="$syms" modules
         [ -f "$V/$d/Module.symvers" ] && syms="$syms $V/$d/Module.symvers"
     done
