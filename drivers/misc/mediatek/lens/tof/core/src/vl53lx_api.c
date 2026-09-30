@@ -29,6 +29,7 @@
 		##__VA_ARGS__)
 #endif
 
+#include <linux/minmax.h>
 #ifndef MIN
 #define MIN(v1, v2) ((v1) < (v2) ? (v1) : (v2))
 #endif

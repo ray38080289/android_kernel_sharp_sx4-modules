@@ -25,6 +25,7 @@
 
 #define TCPC_NORMAL_RP_DUTY	(308)		/* 30% */
 
+#include <linux/minmax.h>
 #ifndef MIN
 #define MIN(a, b)       (((a) < (b)) ? (a) : (b))
 #endif

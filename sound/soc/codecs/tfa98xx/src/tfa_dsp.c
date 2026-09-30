@@ -40,6 +40,7 @@
 #define TFA98XX_KEY2_PROTECTED_MTP0_MTPEX_POS 1
 #define TFA98XX_KEY2_PROTECTED_MTP0_MTPOTC_POS 0
 
+#include <linux/minmax.h>
 #ifndef MIN
 #define MIN(A, B) (((A) - (B)) < 0 ? A : B)
 #endif

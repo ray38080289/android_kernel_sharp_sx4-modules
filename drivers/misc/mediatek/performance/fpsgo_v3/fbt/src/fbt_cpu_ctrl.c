@@ -26,8 +26,13 @@
 
 /*--------------------------------------------*/
 
+#include <linux/minmax.h>
+#ifndef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
 
 
 struct FBT_CPU_CTRL_NOTIFIER_PUSH_TAG {

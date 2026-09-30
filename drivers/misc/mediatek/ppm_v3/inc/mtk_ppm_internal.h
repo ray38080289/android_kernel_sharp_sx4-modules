@@ -76,6 +76,7 @@ extern "C" {
 #define for_each_ppm_clients(i)		for (i = 0; i < NR_PPM_CLIENTS; i++)
 
 /* operation */
+#include <linux/minmax.h>
 #ifndef MAX
 #define MAX(a, b)		((a) >= (b) ? (a) : (b))
 #endif

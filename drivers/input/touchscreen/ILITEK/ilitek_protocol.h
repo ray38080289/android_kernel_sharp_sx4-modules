@@ -148,6 +148,7 @@ extern char g_str[4096];
 #define UNUSED(x)	(void)(x)
 #endif
 
+#include <linux/minmax.h>
 #ifndef MIN
 #define MIN(l, r)				(((l) > (r)) ? (r) : (l))
 #endif

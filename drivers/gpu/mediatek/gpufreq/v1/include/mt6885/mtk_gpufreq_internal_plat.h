@@ -180,6 +180,7 @@
  **************************************************/
 #define VOLT_NORMALIZATION(volt)	\
 	((volt % 625) ? (volt - (volt % 625) + 625) : volt)
+#include <linux/minmax.h>
 #ifndef MIN
 #define MIN(x, y)	(((x) < (y)) ? (x) : (y))
 #endif
