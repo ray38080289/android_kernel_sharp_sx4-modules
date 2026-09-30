@@ -9,13 +9,16 @@
 #   $ROOT/kernel_device_modules-6.6      this repository
 #   $ROOT/vendor/mediatek/kernel_modules connectivity + GPU modules
 #   $ROOT/prebuilts/clang-r510928        the GKI compiler (fetched if missing)
-# Output: $ROOT/out/dist/*.ko (debug info stripped)
+# Output: $ROOT/out/dist/*.ko (debug info stripped), mt6833.dtb and dtbo.img
+#
+# ./build_sx4.sh dtbs builds only the device tree images.
 
 set -euo pipefail
 
 ACK_SHA=cc1e318bd6fc                 # 6.6.139-android15-8-gcc1e318bd6fc-ab16457230
 GKI_BUILD=16457230                   # ci.android.com build of that kernel
 CLANG=r510928
+LIBUFDT=df92216e3fc5f3fe289423a7819bd4a5ed3bd443  # mkdtboimg.py (LineageOS android_system_libufdt)
 
 DM="$(cd "$(dirname "$0")" && pwd)"
 ROOT="${ROOT:-$(dirname "$DM")}"
@@ -40,6 +43,10 @@ fetch() {
         page=$(curl -sSfL "https://ci.android.com/builds/submitted/$GKI_BUILD/kernel_aarch64/latest/kernel_aarch64_Module.symvers")
         url=$(grep -o 'https://storage.googleapis.com/android-build/builds/[^"]*kernel_aarch64_Module.symvers[^"]*' <<<"$page" | head -1 | sed 's/\\u0026/\&/g')
         curl -sSfL -o "$O/gki.symvers" "$url"
+    fi
+    if [ ! -s "$O/mkdtboimg.py" ]; then
+        mkdir -p "$O"
+        curl -sSfL -o "$O/mkdtboimg.py"             "https://raw.githubusercontent.com/LineageOS/android_system_libufdt/$LIBUFDT/utils/src/mkdtboimg.py"
     fi
     [ -d "$V/connectivity" ] || { echo "missing $V" >&2; exit 1; }
 }
@@ -103,10 +110,33 @@ dist() {
     find "$DM" $(for d in $INTREE; do echo "$K/$d"; done) -name '*.ko' -exec cp -t "$O/dist" {} +
     find -L "$V" -name '*.ko' -exec cp -n -t "$O/dist" {} +
     "$C/bin/llvm-strip" --strip-debug "$O"/dist/*.ko
-    echo "$(ls "$O/dist" | wc -l) modules in $O/dist"
+    echo "$(ls "$O"/dist/*.ko | wc -l) modules in $O/dist"
 }
 
-fetch
-configure
-build
-dist
+# Base dtb and the six board overlays (EVB, PRE_EVT, EVT, DVT, PVT, MP = ids 0-5; LK
+# picks the id), each packed in a DT table image like the stock dtb and dtbo partitions.
+dtbs() {
+    local d="$DM/arch/arm64/boot/dts" b i=0 ovl=()
+    mkdir -p "$O/dts" "$O/dist"
+    dtc_one() {
+        clang -E -nostdinc -I"$DM/include" -I"$K/include" -I"$d" -I"$d/mediatek"             -I"$K/scripts/dtc/include-prefixes" -undef -D__DTS__ -x assembler-with-cpp             -o "$O/dts/$2.pre" "$d/mediatek/$1"
+        "$O/scripts/dtc/dtc" -@ -q -I dts -O dtb -o "$O/dts/$2" "$O/dts/$2.pre"
+    }
+    dtc_one mt6833.dts mt6833.dtb
+    for b in evb pre_evt evt dvt pvt mp; do
+        dtc_one "k6833v1_64_sx4_$b.dts" "sx4_$b.dtbo"
+        ovl+=("$O/dts/sx4_$b.dtbo" --id=$i); i=$((i + 1))
+    done
+    python3 "$O/mkdtboimg.py" create "$O/dist/mt6833.dtb" --page_size=2048 "$O/dts/mt6833.dtb" --id=0
+    python3 "$O/mkdtboimg.py" create "$O/dist/dtbo.img" --page_size=2048 "${ovl[@]}"
+    # drop the page padding after the table, as in the stock images
+    for b in mt6833.dtb dtbo.img; do
+        truncate -s "$(od -An -tu4 --endian=big -j4 -N4 "$O/dist/$b")" "$O/dist/$b"
+    done
+    echo "device tree: $O/dist/mt6833.dtb $O/dist/dtbo.img"
+}
+
+case "${1:-all}" in
+    dtbs) fetch; [ -x "$O/scripts/dtc/dtc" ] || configure; dtbs ;;
+    *) fetch; configure; build; dist; dtbs ;;
+esac
