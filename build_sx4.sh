@@ -13,6 +13,9 @@
 # Output: $ROOT/out/dist/*.ko (debug info stripped), mt6833.dtb and dtbo.img
 #
 # ./build_sx4.sh dtbs builds only the device tree images.
+# ./build_sx4.sh lineage DIR builds everything and assembles DIR as device/sharp/sx4-kernels/6.6
+# for the LineageOS tree: the certified GKI Image.gz and system_dlkm modules from ci.android.com,
+# the vendor modules and device tree images built here, and the module load lists in lineage/.
 
 set -euo pipefail
 
@@ -143,7 +146,36 @@ dtbs() {
     echo "device tree: $O/dist/mt6833.dtb $O/dist/dtbo.img"
 }
 
+# ci.android.com artifact of the GKI build: signed URL from the artifact page
+ci_get() {
+    local page url
+    page=$(curl -sSfL "https://ci.android.com/builds/submitted/$GKI_BUILD/kernel_aarch64/latest/$1")
+    url=$(grep -o 'https://storage.googleapis.com[^"]*' <<<"$page" | head -1 | sed -E 's/\\+u0026/\&/g')
+    curl -sSfL -o "$2" "$url"
+}
+
+lineage() {
+    local out=$1 gki="$O/gki" m
+    mkdir -p "$gki" "$out"
+    [ -s "$gki/Image.gz" ] || ci_get Image.gz "$gki/Image.gz"
+    if [ ! -d "$gki/system_dlkm" ]; then
+        ci_get system_dlkm_staging_archive.tar.gz "$gki/system_dlkm.tar.gz"
+        mkdir -p "$gki/system_dlkm" && tar xzf "$gki/system_dlkm.tar.gz" -C "$gki/system_dlkm"
+    fi
+    rm -f "$out"/*.ko
+    cp "$gki/Image.gz" "$O/dist/mt6833.dtb" "$O/dist/dtbo.img" "$DM"/lineage/*.modules.load* "$out/"
+    for m in $(cat "$DM/lineage/system_dlkm.modules.load"); do
+        cp "$(find "$gki/system_dlkm" -name "$(basename "$m")" | head -1)" "$out/"
+    done
+    for m in $(cat "$DM"/lineage/vendor_*.modules.load* "$DM/lineage/vendor_dlkm.modules.extra" | sort -u); do
+        cp "$O/dist/$(basename "$m")" "$out/"
+    done
+    echo "$(ls "$out"/*.ko | wc -l) modules, Image.gz, mt6833.dtb, dtbo.img in $out"
+}
+
 case "${1:-all}" in
     dtbs) fetch; [ -x "$O/scripts/dtc/dtc" ] || configure; dtbs ;;
+    lineage) [ -n "${2:-}" ] || { echo "usage: $0 lineage DIR" >&2; exit 1; }
+        fetch; configure; build; dist; dtbs; lineage "$(realpath -m "$2")" ;;
     *) fetch; configure; build; dist; dtbs ;;
 esac
