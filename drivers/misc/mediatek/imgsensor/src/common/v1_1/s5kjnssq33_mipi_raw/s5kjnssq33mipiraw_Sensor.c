@@ -33,6 +33,8 @@
 #include <linux/atomic.h>
 #include <linux/types.h>
 
+#include <linux/soc/mediatek/mtk_mmdvfs.h>
+
 #include "kd_camera_typedef.h"
 #include "kd_imgsensor.h"
 #include "kd_imgsensor_define.h"
@@ -2528,9 +2530,21 @@ static kal_uint32 open(void)
  * GLOBALS AFFECTED
  *
  *************************************************************************/
+/*
+ * The 60 fps (custom1) and 120 fps (hs_video) modes need the top multimedia
+ * DVFS step: with the default vote the ISP drops 1080p60 to about 37 fps.
+ */
+static void vote_mmdvfs(enum MSDK_SCENARIO_ID_ENUM scenario_id)
+{
+	mmdvfs_set_vote_step(scenario_id == MSDK_SCENARIO_ID_CUSTOM1 ||
+			     scenario_id == MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO ? 0 : -1);
+}
+
 static kal_uint32 close(void)
 {
 	MUINT32 ret = ERROR_NONE;
+
+	mmdvfs_set_vote_step(-1);
 
 	return ret;
 }		/* close */
@@ -2832,6 +2846,7 @@ static kal_uint32 control(enum MSDK_SCENARIO_ID_ENUM scenario_id,
 	spin_lock(&imgsensor_drv_lock);
 	imgsensor.current_scenario_id = scenario_id;
 	spin_unlock(&imgsensor_drv_lock);
+	vote_mmdvfs(scenario_id);
 	switch (scenario_id) {
 	case MSDK_SCENARIO_ID_CAMERA_PREVIEW:
 		preview(image_window, sensor_config_data);
