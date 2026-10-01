@@ -10,4 +10,6 @@ struct fih_touch_cb {
     void (*touch_vendor_read)(char *);
 };
 
+extern bool fih_touch_gesture_enabled;
+
 #endif /* __FIH_TOUCH_H */

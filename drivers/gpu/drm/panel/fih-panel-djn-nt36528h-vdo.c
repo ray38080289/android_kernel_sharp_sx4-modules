@@ -545,6 +545,9 @@ static int lcm_disable(struct drm_panel *panel)
 	return 0;
 }
 
+/* fih_touch: the touch controller in this IC needs power for double tap to wake */
+extern bool fih_touch_gesture_enabled;
+
 static int lcm_unprepare(struct drm_panel *panel)
 {
 	struct lcm *ctx = panel_to_lcm(panel);
@@ -560,6 +563,11 @@ static int lcm_unprepare(struct drm_panel *panel)
 
 	ctx->error = 0;
 	ctx->prepared = false;
+
+	if (fih_touch_gesture_enabled) {
+		pr_info("[Kernel/LCM] %s: touch wakeup gesture, panel stays powered\n", __func__);
+		return 0;
+	}
 
 	ctx->reset_gpio =
 		devm_gpiod_get(ctx->dev, "reset", GPIOD_OUT_HIGH);

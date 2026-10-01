@@ -229,4 +229,14 @@ static void __exit fih_touch_exit(void)
 module_init(fih_touch_init);
 module_exit(fih_touch_exit);
 
+/*
+ * Double tap to wake, off by default. Read by the NT36528 touch driver on
+ * suspend and by the NT36528H panel drivers, which then keep the display IC
+ * (that also runs the touch controller) powered while the screen is off.
+ */
+bool fih_touch_gesture_enabled;
+EXPORT_SYMBOL_GPL(fih_touch_gesture_enabled);
+module_param_named(gesture_enabled, fih_touch_gesture_enabled, bool, 0644);
+MODULE_PARM_DESC(gesture_enabled, "Wake up on double tap while the screen is off");
+
 MODULE_LICENSE("GPL");

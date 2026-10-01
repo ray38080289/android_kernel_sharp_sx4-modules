@@ -117,20 +117,23 @@ const uint16_t touch_key_array[TOUCH_KEY_NUM] = {
 
 #if WAKEUP_GESTURE
 const uint16_t gesture_key_array[] = {
-	KEY_POWER,  //GESTURE_WORD_C
-	KEY_POWER,  //GESTURE_WORD_W
-	KEY_POWER,  //GESTURE_WORD_V
-	KEY_POWER,  //GESTURE_DOUBLE_CLICK
-	KEY_POWER,  //GESTURE_WORD_Z
-	KEY_POWER,  //GESTURE_WORD_M
-	KEY_POWER,  //GESTURE_WORD_O
-	KEY_POWER,  //GESTURE_WORD_e
-	KEY_POWER,  //GESTURE_WORD_S
-	KEY_POWER,  //GESTURE_SLIDE_UP
-	KEY_POWER,  //GESTURE_SLIDE_DOWN
-	KEY_POWER,  //GESTURE_SLIDE_LEFT
-	KEY_POWER,  //GESTURE_SLIDE_RIGHT
+	0,  //GESTURE_WORD_C
+	0,  //GESTURE_WORD_W
+	0,  //GESTURE_WORD_V
+	KEY_WAKEUP,  //GESTURE_DOUBLE_CLICK
+	0,  //GESTURE_WORD_Z
+	0,  //GESTURE_WORD_M
+	0,  //GESTURE_WORD_O
+	0,  //GESTURE_WORD_e
+	0,  //GESTURE_WORD_S
+	0,  //GESTURE_SLIDE_UP
+	0,  //GESTURE_SLIDE_DOWN
+	0,  //GESTURE_SLIDE_LEFT
+	0,  //GESTURE_SLIDE_RIGHT
 };
+
+/* Set while suspended in wakeup gesture mode (fih_touch gesture_enabled) */
+static bool gesture_mode;
 #endif
 
 #ifdef CONFIG_MTK_SPI
@@ -2158,7 +2161,8 @@ static int32_t nvt_ts_probe(struct spi_device *client)
 
 #if WAKEUP_GESTURE
 	for (retry = 0; retry < (sizeof(gesture_key_array) / sizeof(gesture_key_array[0])); retry++) {
-		input_set_capability(ts->input_dev, EV_KEY, gesture_key_array[retry]);
+		if (gesture_key_array[retry])
+			input_set_capability(ts->input_dev, EV_KEY, gesture_key_array[retry]);
 	}
 #endif
 
@@ -2624,9 +2628,9 @@ static int32_t nvt_ts_suspend(struct device *dev)
 		return 0;
 	}
 
-#if !WAKEUP_GESTURE
-	nvt_irq_enable(false);
-#endif
+	gesture_mode = fih_touch_gesture_enabled;
+	if (!gesture_mode)
+		nvt_irq_enable(false);
 
 #if NVT_TOUCH_ESD_PROTECT
 	NVT_LOG("cancel delayed work sync\n");
@@ -2640,26 +2644,27 @@ static int32_t nvt_ts_suspend(struct device *dev)
 
 	bTouchIsAwake = 0;
 
-#if WAKEUP_GESTURE
-	//---write command to enter "wakeup gesture mode"---
-	buf[0] = EVENT_MAP_HOST_CMD;
-	buf[1] = 0x13;
-	CTP_SPI_WRITE(ts->client, buf, 2);
+	if (gesture_mode) {
+		//---write command to enter "wakeup gesture mode"---
+		buf[0] = EVENT_MAP_HOST_CMD;
+		buf[1] = 0x13;
+		CTP_SPI_WRITE(ts->client, buf, 2);
 
-	enable_irq_wake(ts->client->irq);
+		/* SPI stays usable: the gesture is read from the interrupt */
+		enable_irq_wake(ts->client->irq);
 
-	NVT_LOG("Enabled touch wakeup gesture\n");
+		NVT_LOG("Enabled touch wakeup gesture\n");
+	} else {
+		//---write command to enter "deep sleep mode"---
+		buf[0] = EVENT_MAP_HOST_CMD;
+		buf[1] = 0x11;
+		CTP_SPI_WRITE(ts->client, buf, 2);
 
-#else // WAKEUP_GESTURE
-	//---write command to enter "deep sleep mode"---
-	buf[0] = EVENT_MAP_HOST_CMD;
-	buf[1] = 0x11;
-	CTP_SPI_WRITE(ts->client, buf, 2);
-#endif // WAKEUP_GESTURE
-	ret = pinctrl_select_state(nvt_pinctrl,
-					nvt_spi_disable);
-	if(ret)
-		NVT_LOG("failed to pinctrl select nvt_spi_disable\n");
+		ret = pinctrl_select_state(nvt_pinctrl,
+						nvt_spi_disable);
+		if(ret)
+			NVT_LOG("failed to pinctrl select nvt_spi_disable\n");
+	}
 
 	mutex_unlock(&ts->lock);
 
@@ -2739,9 +2744,11 @@ static int32_t nvt_ts_resume(struct device *dev)
 	}
 #endif
 
-#if !WAKEUP_GESTURE
+	if (gesture_mode) {
+		disable_irq_wake(ts->client->irq);
+		gesture_mode = false;
+	}
 	nvt_irq_enable(true);
-#endif
 
 #if NVT_TOUCH_ESD_PROTECT
 	nvt_esd_check_enable(false);
