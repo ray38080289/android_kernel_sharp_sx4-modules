@@ -1099,6 +1099,11 @@ void exec_BAT_EC(struct mtk_battery *gm, int cmd, int param)
 		break;
 	case 717:
 		{
+			if (param < 1 || param > MAX_TABLE) {
+				bm_err(gm, "exe_BAT_EC cmd %d, invalid active_table_number %d\n",
+					cmd, param);
+				return;
+			}
 			fg_table_cust_data->active_table_number = param;
 			bm_err(gm,
 				"exe_BAT_EC cmd %d, param %d, additional_battery_table_en\n",
@@ -2720,7 +2725,11 @@ static ssize_t BAT_SHUTDOWN_store(
 	gm = gauge->gm;
 
 	bm_err(gm, "%s, size =%zu, str=%s\n", __func__, size, buf);
-	strscpy(buf_str, buf, size);
+	if (size >= sizeof(buf_str)) {
+		bm_err(gm, "%s error, size %zu too large\n", __func__, size);
+		return -EINVAL;
+	}
+	strscpy(buf_str, buf, sizeof(buf_str));
 	bm_err(gm, "%s, copy str=%s\n", __func__, buf_str);
 
 	if (buf != NULL && size != 0) {
@@ -2729,12 +2738,17 @@ static ssize_t BAT_SHUTDOWN_store(
 			memset(copy_str, 0, sizeof(copy_str));
 
 			chr_size = pch - s;
+			if (count >= ARRAY_SIZE(value) || chr_size >= sizeof(copy_str)) {
+				bm_err(gm, "%s error, invalid input\n", __func__);
+				return -EINVAL;
+			}
 			strscpy(copy_str, s, chr_size+1);
 
 			result = kstrtoint(copy_str, 10, &value[count]);
-			if (result < 0)
+			if (result < 0) {
 				bm_err(gm, "[%s]str:%s\n", __func__, copy_str);
-			else {
+				return -EINVAL;
+			} else {
 				bm_err(gm, "::%s::count:%d,%d\n", copy_str, count, value[count]);
 				s = pch + 1;
 				pch = strchr(s, ',');
